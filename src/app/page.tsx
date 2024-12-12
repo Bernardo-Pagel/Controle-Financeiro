@@ -1,20 +1,83 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { collection, query, onSnapshot, where } from 'firebase/firestore'
+import { useAuthState } from 'react-firebase-hooks/auth'
+import { db, auth } from './firebase/config'
 import DashboardCard from './components/DashboardCard'
+import { useRouter } from 'next/navigation'
+
+interface Movimentacao {
+  type: string;
+  value: number;
+  status?: string;
+}
 
 export default function Home() {
-  // This data would typically come from an API or database
-  const dashboardData = {
+  const [user, loading] = useAuthState(auth);
+  const router = useRouter();
+  const [dashboardData, setDashboardData] = useState({
     monthSummary: {
-      totalIncome: 5000,
-      totalExpenses: 3500
+      totalIncome: 0,
+      totalExpenses: 0
     },
     fixedExpenses: {
-      count: 5,
-      total: 2000
+      count: 0,
+      total: 0
     },
     variableExpenses: {
-      count: 10,
-      total: 1500
+      count: 0,
+      total: 0
     }
+  })
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    const q = query(collection(db, 'movimentacoes'), where('userId', '==', user.uid))
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const movimentacoes: Movimentacao[] = []
+      querySnapshot.forEach((doc) => {
+        movimentacoes.push(doc.data() as Movimentacao)
+      })
+
+      const newDashboardData = movimentacoes.reduce((acc, mov) => {
+        if (mov.type === 'receita') {
+          acc.monthSummary.totalIncome += mov.value
+        } else {
+          acc.monthSummary.totalExpenses += mov.value
+          if (mov.type === 'despesa_fixa') {
+            acc.fixedExpenses.count++
+            acc.fixedExpenses.total += mov.value
+          } else if (mov.type === 'despesa_variavel') {
+            acc.variableExpenses.count++
+            acc.variableExpenses.total += mov.value
+          }
+        }
+        return acc
+      }, {
+        monthSummary: { totalIncome: 0, totalExpenses: 0 },
+        fixedExpenses: { count: 0, total: 0 },
+        variableExpenses: { count: 0, total: 0 }
+      })
+
+      setDashboardData(newDashboardData)
+    })
+
+    return () => unsubscribe()
+  }, [user, loading, router])
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    router.push('/login')
+    return null
   }
 
   return (

@@ -1,8 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { addDoc, collection } from 'firebase/firestore'
+import { useAuthState } from 'react-firebase-hooks/auth'
+import { db, auth } from '../firebase/config'
+import { useRouter } from 'next/navigation'
 
 export default function CadastroMovimentacao() {
+    const [user, loading] = useAuthState(auth);
+    const router = useRouter();
     const [formData, setFormData] = useState({
         type: 'receita',
         description: '',
@@ -21,19 +27,42 @@ export default function CadastroMovimentacao() {
         }))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Here you would typically send the data to an API or store it in a database
-        console.log(formData)
-        // Reset form after submission
-        setFormData({
-            type: 'receita',
-            description: '',
-            value: '',
-            date: '',
-            months: 1,
-            status: 'pago'
-        })
+        if (!user) {
+            alert('You must be logged in to add a transaction.')
+            router.push('/login')
+            return
+        }
+        try {
+            await addDoc(collection(db, 'movimentacoes'), {
+                ...formData,
+                value: parseFloat(formData.value),
+                createdAt: new Date(),
+                userId: user.uid  // Add the user's ID to the document
+            })
+            alert('Movimentação registrada com sucesso!')
+            setFormData({
+                type: 'receita',
+                description: '',
+                value: '',
+                date: '',
+                months: 1,
+                status: 'pago'
+            })
+        } catch (error) {
+            console.error('Error adding document: ', error)
+            alert('Erro ao registrar movimentação.')
+        }
+    }
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
+
+    if (!user) {
+        router.push('/login')
+        return null
     }
 
     return (
