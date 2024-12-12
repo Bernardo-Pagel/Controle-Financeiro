@@ -5,7 +5,15 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { db, auth } from '../firebase/config';
 import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useRouter } from 'next/navigation';
@@ -30,8 +38,6 @@ export default function Relatorios() {
         type: 'all',
         status: 'all',
     });
-    const [isLoadingData, setIsLoadingData] = useState(false);
-    const [fetchError, setFetchError] = useState('');
 
     useEffect(() => {
         if (loading) return;
@@ -41,23 +47,14 @@ export default function Relatorios() {
         }
 
         const fetchMovimentacoes = async () => {
-            setIsLoadingData(true);
-            setFetchError('');
-            try {
-                const q = query(collection(db, 'movimentacoes'), where('userId', '==', user.uid));
-                const querySnapshot = await getDocs(q);
-                const movs: Movimentacao[] = [];
-                querySnapshot.forEach((doc) => {
-                    movs.push(doc.data() as Movimentacao);
-                });
-                setMovimentacoes(movs);
-                setFilteredMovimentacoes(movs);
-            } catch (error) {
-                setFetchError('Erro ao buscar dados. Tente novamente mais tarde.');
-                console.log(error)
-            } finally {
-                setIsLoadingData(false);
-            }
+            const q = query(collection(db, 'movimentacoes'), where('userId', '==', user.uid));
+            const querySnapshot = await getDocs(q);
+            const movs: Movimentacao[] = [];
+            querySnapshot.forEach((doc) => {
+                movs.push(doc.data() as Movimentacao);
+            });
+            setMovimentacoes(movs);
+            setFilteredMovimentacoes(movs);
         };
 
         fetchMovimentacoes();
@@ -81,7 +78,7 @@ export default function Relatorios() {
     };
 
     const generatePDF = () => {
-        const doc = new jsPDF() as jsPDF & { autoTable: typeof autoTable };
+        const doc = new jsPDF();
         doc.text('Relatório de Movimentações', 20, 10);
 
         const tableData = filteredMovimentacoes.map((mov) => [
@@ -91,7 +88,7 @@ export default function Relatorios() {
             mov.status || 'N/A',
         ]);
 
-        doc.autoTable({
+        autoTable(doc, {
             head: [['Tipo', 'Valor', 'Data', 'Status']],
             body: tableData,
         });
@@ -120,10 +117,18 @@ export default function Relatorios() {
         ],
     };
 
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user) {
+        router.push('/login');
+        return null;
+    }
+
     return (
         <div className="p-4">
             <h1 className="text-3xl font-bold mb-6">Relatórios</h1>
-            {fetchError && <p className="text-red-500 mb-4">{fetchError}</p>}
             <div className="mb-4 flex flex-wrap gap-4">
                 <input
                     type="date"
@@ -160,13 +165,8 @@ export default function Relatorios() {
                     <option value="pago">Pago</option>
                     <option value="pendente">Pendente</option>
                 </select>
-                <button
-                    onClick={generatePDF}
-                    className={`bg-blue-500 text-white px-4 py-2 rounded ${isLoadingData ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                    disabled={isLoadingData}
-                >
-                    {isLoadingData ? 'Gerando...' : 'Exportar para PDF'}
+                <button onClick={generatePDF} className="bg-blue-500 text-white px-4 py-2 rounded">
+                    Exportar para PDF
                 </button>
             </div>
             <div className="mb-8">
