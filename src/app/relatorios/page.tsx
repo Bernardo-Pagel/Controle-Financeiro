@@ -1,24 +1,16 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { db, auth } from '../firebase/config';
-import { Bar } from 'react-chartjs-2';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-} from 'chart.js';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { useAuthState } from 'react-firebase-hooks/auth'
+import { db, auth } from '../firebase/config'
+import { Bar } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import { useRouter } from 'next/navigation'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface Movimentacao {
     type: string;
@@ -127,28 +119,28 @@ export default function Relatorios() {
     }
 
     return (
-        <div className="p-4">
-            <h1 className="text-3xl font-bold mb-6">Relatórios</h1>
-            <div className="mb-4 flex flex-wrap gap-4">
+        <div className="p-4 max-w-7xl mx-auto">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6">Relatórios</h1>
+            <div className="mb-4 flex flex-col sm:flex-row flex-wrap gap-4">
                 <input
                     type="date"
                     name="startDate"
                     value={filters.startDate}
                     onChange={handleFilterChange}
-                    className="border p-2 rounded"
+                    className="border p-2 rounded w-full sm:w-auto"
                 />
                 <input
                     type="date"
                     name="endDate"
                     value={filters.endDate}
                     onChange={handleFilterChange}
-                    className="border p-2 rounded"
+                    className="border p-2 rounded w-full sm:w-auto"
                 />
                 <select
                     name="type"
                     value={filters.type}
                     onChange={handleFilterChange}
-                    className="border p-2 rounded"
+                    className="border p-2 rounded w-full sm:w-auto"
                 >
                     <option value="all">Todos os tipos</option>
                     <option value="receita">Receita</option>
@@ -159,39 +151,42 @@ export default function Relatorios() {
                     name="status"
                     value={filters.status}
                     onChange={handleFilterChange}
-                    className="border p-2 rounded"
+                    className="border p-2 rounded w-full sm:w-auto"
                 >
                     <option value="all">Todos os status</option>
                     <option value="pago">Pago</option>
                     <option value="pendente">Pendente</option>
                 </select>
-                <button onClick={generatePDF} className="bg-blue-500 text-white px-4 py-2 rounded">
+                <button onClick={generatePDF} className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto">
                     Exportar para PDF
                 </button>
             </div>
-            <div className="mb-8">
+            <div className="mb-8 max-w-3xl mx-auto">
                 <Bar data={chartData} />
             </div>
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr>
-                        <th className="border p-2">Tipo</th>
-                        <th className="border p-2">Valor</th>
-                        <th className="border p-2">Data</th>
-                        <th className="border p-2">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredMovimentacoes.map((mov, index) => (
-                        <tr key={index}>
-                            <td className="border p-2">{mov.type}</td>
-                            <td className="border p-2">R$ {mov.value.toFixed(2)}</td>
-                            <td className="border p-2">{mov.date}</td>
-                            <td className="border p-2">{mov.status || 'N/A'}</td>
+            <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr>
+                            <th className="border p-2">Tipo</th>
+                            <th className="border p-2">Valor</th>
+                            <th className="border p-2">Data</th>
+                            <th className="border p-2">Status</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {filteredMovimentacoes.map((mov, index) => (
+                            <tr key={index}>
+                                <td className="border p-2">{mov.type}</td>
+                                <td className="border p-2">R$ {mov.value.toFixed(2)}</td>
+                                <td className="border p-2">{mov.date}</td>
+                                <td className="border p-2">{mov.status || 'N/A'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
+

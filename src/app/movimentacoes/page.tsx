@@ -69,7 +69,7 @@ export default function VerMovimentacoes() {
     }
 
     if (loading) {
-        return <div>Loading...</div>
+        return <div className="text-center p-4">Carregando...</div>
     }
 
     if (!user) {
@@ -78,99 +78,169 @@ export default function VerMovimentacoes() {
     }
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-6">Ver Movimentações</h1>
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr>
-                        <th className="border p-2">Tipo</th>
-                        <th className="border p-2">Descrição</th>
-                        <th className="border p-2">Valor</th>
-                        <th className="border p-2">Data</th>
-                        <th className="border p-2">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {movimentacoes.map((mov) => (
-                        <tr key={mov.id}>
-                            <td className="border p-2">
-                                {editingId === mov.id ? (
-                                    <select
-                                        value={mov.type}
-                                        onChange={(e) => handleSave(mov.id, { type: e.target.value })}
-                                        className="w-full p-1 border rounded"
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6">Ver Movimentações</h1>
+            <div className="overflow-x-auto">
+                <table className="w-full border-collapse hidden md:table">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="border p-2">Tipo</th>
+                            <th className="border p-2">Descrição</th>
+                            <th className="border p-2">Valor</th>
+                            <th className="border p-2">Data</th>
+                            <th className="border p-2">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {movimentacoes.map((mov) => (
+                            <tr key={mov.id}>
+                                <td className="border p-2">
+                                    {editingId === mov.id ? (
+                                        <select
+                                            value={mov.type}
+                                            onChange={(e) => handleSave(mov.id, { type: e.target.value })}
+                                            className="w-full p-1 border rounded"
+                                        >
+                                            <option value="receita">Receita</option>
+                                            <option value="despesa_fixa">Despesa Fixa</option>
+                                            <option value="despesa_variavel">Despesa Variável</option>
+                                        </select>
+                                    ) : (
+                                        mov.type
+                                    )}
+                                </td>
+                                <td className="border p-2">
+                                    {editingId === mov.id ? (
+                                        <input
+                                            type="text"
+                                            value={mov.description}
+                                            onChange={(e) => handleSave(mov.id, { description: e.target.value })}
+                                            className="w-full p-1 border rounded"
+                                        />
+                                    ) : (
+                                        mov.description
+                                    )}
+                                </td>
+                                <td className="border p-2">
+                                    {editingId === mov.id ? (
+                                        <input
+                                            type="number"
+                                            value={mov.value}
+                                            onChange={(e) => handleSave(mov.id, { value: parseFloat(e.target.value) })}
+                                            className="w-full p-1 border rounded"
+                                        />
+                                    ) : (
+                                        `R$ ${mov.value.toFixed(2)}`
+                                    )}
+                                </td>
+                                <td className="border p-2">
+                                    {editingId === mov.id ? (
+                                        <input
+                                            type="date"
+                                            value={mov.date}
+                                            onChange={(e) => handleSave(mov.id, { date: e.target.value })}
+                                            className="w-full p-1 border rounded"
+                                        />
+                                    ) : (
+                                        mov.date
+                                    )}
+                                </td>
+                                <td className="border p-2">
+                                    {editingId === mov.id ? (
+                                        <button
+                                            onClick={() => setEditingId(null)}
+                                            className="bg-green-500 text-white px-2 py-1 rounded mr-2"
+                                        >
+                                            Salvar
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleEdit(mov.id)}
+                                            className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
+                                        >
+                                            Editar
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => handleDelete(mov.id)}
+                                        className="bg-red-500 text-white px-2 py-1 rounded"
                                     >
-                                        <option value="receita">Receita</option>
-                                        <option value="despesa_fixa">Despesa Fixa</option>
-                                        <option value="despesa_variavel">Despesa Variável</option>
-                                    </select>
-                                ) : (
-                                    mov.type
-                                )}
-                            </td>
-                            <td className="border p-2">
-                                {editingId === mov.id ? (
-                                    <input
-                                        type="text"
-                                        value={mov.description}
-                                        onChange={(e) => handleSave(mov.id, { description: e.target.value })}
-                                        className="w-full p-1 border rounded"
-                                    />
-                                ) : (
-                                    mov.description
-                                )}
-                            </td>
-                            <td className="border p-2">
-                                {editingId === mov.id ? (
-                                    <input
-                                        type="number"
-                                        value={mov.value}
-                                        onChange={(e) => handleSave(mov.id, { value: parseFloat(e.target.value) })}
-                                        className="w-full p-1 border rounded"
-                                    />
-                                ) : (
-                                    `R$ ${mov.value.toFixed(2)}`
-                                )}
-                            </td>
-                            <td className="border p-2">
-                                {editingId === mov.id ? (
-                                    <input
-                                        type="date"
-                                        value={mov.date}
-                                        onChange={(e) => handleSave(mov.id, { date: e.target.value })}
-                                        className="w-full p-1 border rounded"
-                                    />
-                                ) : (
-                                    mov.date
-                                )}
-                            </td>
-                            <td className="border p-2">
+                                        Excluir
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div className="md:hidden">
+                    {movimentacoes.map((mov) => (
+                        <div key={mov.id} className="bg-white shadow-md rounded-lg p-4 mb-4">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="font-bold">{mov.type}</span>
+                                <span className="text-sm text-gray-500">{mov.date}</span>
+                            </div>
+                            <p className="mb-2">{mov.description}</p>
+                            <p className="text-lg font-semibold mb-2">R$ {mov.value.toFixed(2)}</p>
+                            <div className="flex justify-end space-x-2">
                                 {editingId === mov.id ? (
                                     <button
                                         onClick={() => setEditingId(null)}
-                                        className="bg-green-500 text-white px-2 py-1 rounded mr-2"
+                                        className="bg-green-500 text-white px-3 py-1 rounded"
                                     >
                                         Salvar
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => handleEdit(mov.id)}
-                                        className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
+                                        className="bg-blue-500 text-white px-3 py-1 rounded"
                                     >
                                         Editar
                                     </button>
                                 )}
                                 <button
                                     onClick={() => handleDelete(mov.id)}
-                                    className="bg-red-500 text-white px-2 py-1 rounded"
+                                    className="bg-red-500 text-white px-3 py-1 rounded"
                                 >
                                     Excluir
                                 </button>
-                            </td>
-                        </tr>
+                            </div>
+                            {editingId === mov.id && (
+                                <div className="mt-4 space-y-2">
+                                    <select
+                                        value={mov.type}
+                                        onChange={(e) => handleSave(mov.id, { type: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                    >
+                                        <option value="receita">Receita</option>
+                                        <option value="despesa_fixa">Despesa Fixa</option>
+                                        <option value="despesa_variavel">Despesa Variável</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        value={mov.description}
+                                        onChange={(e) => handleSave(mov.id, { description: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                        placeholder="Descrição"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={mov.value}
+                                        onChange={(e) => handleSave(mov.id, { value: parseFloat(e.target.value) })}
+                                        className="w-full p-2 border rounded"
+                                        placeholder="Valor"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={mov.date}
+                                        onChange={(e) => handleSave(mov.id, { date: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     ))}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     )
 }
