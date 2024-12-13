@@ -21,6 +21,7 @@ export default function VerMovimentacoes() {
     const router = useRouter();
     const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([])
     const [editingId, setEditingId] = useState<string | null>(null)
+    const [editedData, setEditedData] = useState<Partial<Movimentacao>>({}) // Temporary state for edited data
 
     useEffect(() => {
         if (loading) return;
@@ -41,15 +42,23 @@ export default function VerMovimentacoes() {
         return () => unsubscribe()
     }, [user, loading, router])
 
-    const handleEdit = (id: string) => {
+    const handleEdit = (id: string, currentData: Movimentacao) => {
         setEditingId(id)
+        setEditedData({
+            type: currentData.type,
+            description: currentData.description,
+            value: currentData.value,
+            date: currentData.date
+        })
     }
 
-    const handleSave = async (id: string, updatedData: Partial<Movimentacao>) => {
-        if (!user) return;
+    const handleSave = async (id: string) => {
+        if (!user || !editedData) return;
         try {
-            await updateDoc(doc(db, 'movimentacoes', id), updatedData)
+            // Only save the edited data if there are changes
+            await updateDoc(doc(db, 'movimentacoes', id), editedData)
             setEditingId(null)
+            setEditedData({}) // Clear temporary edited data
         } catch (error) {
             console.error('Error updating document: ', error)
             alert('Erro ao atualizar movimentação.')
@@ -97,8 +106,8 @@ export default function VerMovimentacoes() {
                                 <td className="border p-2">
                                     {editingId === mov.id ? (
                                         <select
-                                            value={mov.type}
-                                            onChange={(e) => handleSave(mov.id, { type: e.target.value })}
+                                            value={editedData.type}
+                                            onChange={(e) => setEditedData({ ...editedData, type: e.target.value })}
                                             className="w-full p-1 border rounded"
                                         >
                                             <option value="receita">Receita</option>
@@ -113,8 +122,8 @@ export default function VerMovimentacoes() {
                                     {editingId === mov.id ? (
                                         <input
                                             type="text"
-                                            value={mov.description}
-                                            onChange={(e) => handleSave(mov.id, { description: e.target.value })}
+                                            value={editedData.description}
+                                            onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
                                             className="w-full p-1 border rounded"
                                         />
                                     ) : (
@@ -125,8 +134,8 @@ export default function VerMovimentacoes() {
                                     {editingId === mov.id ? (
                                         <input
                                             type="number"
-                                            value={mov.value}
-                                            onChange={(e) => handleSave(mov.id, { value: parseFloat(e.target.value) })}
+                                            value={editedData.value}
+                                            onChange={(e) => setEditedData({ ...editedData, value: parseFloat(e.target.value) })}
                                             className="w-full p-1 border rounded"
                                         />
                                     ) : (
@@ -137,8 +146,8 @@ export default function VerMovimentacoes() {
                                     {editingId === mov.id ? (
                                         <input
                                             type="date"
-                                            value={mov.date}
-                                            onChange={(e) => handleSave(mov.id, { date: e.target.value })}
+                                            value={editedData.date}
+                                            onChange={(e) => setEditedData({ ...editedData, date: e.target.value })}
                                             className="w-full p-1 border rounded"
                                         />
                                     ) : (
@@ -148,14 +157,14 @@ export default function VerMovimentacoes() {
                                 <td className="border p-2">
                                     {editingId === mov.id ? (
                                         <button
-                                            onClick={() => setEditingId(null)}
+                                            onClick={() => handleSave(mov.id)}
                                             className="bg-green-500 text-white px-2 py-1 rounded mr-2"
                                         >
                                             Salvar
                                         </button>
                                     ) : (
                                         <button
-                                            onClick={() => handleEdit(mov.id)}
+                                            onClick={() => handleEdit(mov.id, mov)}
                                             className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
                                         >
                                             Editar
@@ -184,14 +193,14 @@ export default function VerMovimentacoes() {
                             <div className="flex justify-end space-x-2">
                                 {editingId === mov.id ? (
                                     <button
-                                        onClick={() => setEditingId(null)}
+                                        onClick={() => handleSave(mov.id)}
                                         className="bg-green-500 text-white px-3 py-1 rounded"
                                     >
                                         Salvar
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => handleEdit(mov.id)}
+                                        onClick={() => handleEdit(mov.id, mov)}
                                         className="bg-blue-500 text-white px-3 py-1 rounded"
                                     >
                                         Editar
@@ -207,8 +216,8 @@ export default function VerMovimentacoes() {
                             {editingId === mov.id && (
                                 <div className="mt-4 space-y-2">
                                     <select
-                                        value={mov.type}
-                                        onChange={(e) => handleSave(mov.id, { type: e.target.value })}
+                                        value={editedData.type}
+                                        onChange={(e) => setEditedData({ ...editedData, type: e.target.value })}
                                         className="w-full p-2 border rounded"
                                     >
                                         <option value="receita">Receita</option>
@@ -217,22 +226,22 @@ export default function VerMovimentacoes() {
                                     </select>
                                     <input
                                         type="text"
-                                        value={mov.description}
-                                        onChange={(e) => handleSave(mov.id, { description: e.target.value })}
+                                        value={editedData.description}
+                                        onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
                                         className="w-full p-2 border rounded"
                                         placeholder="Descrição"
                                     />
                                     <input
                                         type="number"
-                                        value={mov.value}
-                                        onChange={(e) => handleSave(mov.id, { value: parseFloat(e.target.value) })}
+                                        value={editedData.value}
+                                        onChange={(e) => setEditedData({ ...editedData, value: parseFloat(e.target.value) })}
                                         className="w-full p-2 border rounded"
                                         placeholder="Valor"
                                     />
                                     <input
                                         type="date"
-                                        value={mov.date}
-                                        onChange={(e) => handleSave(mov.id, { date: e.target.value })}
+                                        value={editedData.date}
+                                        onChange={(e) => setEditedData({ ...editedData, date: e.target.value })}
                                         className="w-full p-2 border rounded"
                                     />
                                 </div>
@@ -244,4 +253,3 @@ export default function VerMovimentacoes() {
         </div>
     )
 }
-
